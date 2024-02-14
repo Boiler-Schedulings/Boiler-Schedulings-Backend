@@ -1,62 +1,26 @@
-var firebase = require('firebase/app');
-require('firebase/auth');
-require('firebase/database');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDUJcDgS0xwszqMAu33LvpQpBZmRNyN6Ro",
-    authDomain: "boilerschedulings.firebaseapp.com",
-    databaseURL: "https://boilerschedulings-default-rtdb.firebaseio.com",
-    projectId: "boilerschedulings",
-    storageBucket: "boilerschedulings.appspot.com",
-    messagingSenderId: "785034386913",
-    appId: "1:785034386913:web:ee4070166d8b5f2d4646a0",
-    measurementId: "G-KX0X1G7XGF"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-// Get a reference to the database
-const database = firebase.database;
-console.log(database)
-
-/*
-// Specify the username you want to retrieve data for
-const username = '0oaplC6ojCOUziBBDxrDTG5mjmw2';
-
-// Reference to the specific username in the database
-const usernameRef = database.ref(username);
-
-// Read data from the database
-usernameRef.once('value')
-  .then(snapshot => {
-    // Check if the username exists in the database
-    if (snapshot.exists()) {
-      // Access the 'inputs' node
-      const inputs = snapshot.val().input;
-
-      // Iterate through each chat
-      for (const chatId in inputs) {
-        if (inputs.hasOwnProperty(chatId)) {
-          const chat = inputs[chatId].chats;
-
-          // Iterate through each text in the chat
-          for (const messageId in chat) {
-            if (chat.hasOwnProperty(messageId)) {
-              const text = chat[messageId].text;
-              const timestamp = chat[messageId].timestamp;
-
-              console.log(`Text: ${text}, Timestamp: ${timestamp}`);
-            }
-          }
-        }
-      }
-    } else {
-      console.log('Username not found in the database.');
-    }
-  })
-  .catch(error => {
-    console.error('Error reading data from the database:', error);
-  });
+admin.initializeApp({
+  credential: admin.credential.applicationDefault(),
+  databaseURL: "https://boilerschedulings-default-rtdb.firebaseio.com/",
+});
 
 
-*/
+exports.readData = functions.https.onRequest(async (request, response) => {
+  try {
+    const dbRef = admin.database().ref();
+
+    const dataRef = dbRef.child("0oaplC6ojCOUziBBDxrDTG5mjmw2/input");
+
+    // Retrieve data from the database
+    const snapshot = await dataRef.once("value");
+    const data = snapshot.val();
+
+    // Send the retrieved data as a response
+    response.send({data});
+  } catch (error) {
+    console.error("Error reading data from the database:", error);
+    response.status(500).send("Internal Server Error");
+  }
+});
